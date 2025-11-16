@@ -1,28 +1,29 @@
-📘 FAST-NUCES FYP Handbook Assistant (RAG System)
+# 📘 FAST-NUCES FYP Handbook Assistant (RAG System)
 
-This project is an end-to-end Retrieval-Augmented Generation (RAG) assistant for the FAST-NUCES Final Year Project Handbook.
-It allows students to ask natural-language questions and retrieves answers directly from the handbook.
+This repository contains an end-to-end **Retrieval-Augmented Generation (RAG)** assistant built specifically for the **FAST-NUCES Final Year Project Handbook**.
 
-Features
+It allows students to ask **natural-language questions** and retrieves **accurate, citation-ready answers** directly from the handbook using semantic search, lexical ranking, and context-grounded generation.
 
-Sentence-transformers embedding model
+---
 
-FAISS semantic search index
+## 🚀 Features
 
-Lexical re-ranking for relevance
+- 🔍 **Semantic Search** using Sentence-Transformers  
+- ⚡ **FAISS Index** for fast vector retrieval  
+- 📑 **Lexical Re-ranking** for improved relevance  
+- 🧠 **Extractive, Non-Hallucinating Answer Generation** (answers strictly grounded in handbook text)  
+- 🎛️ **GPU Acceleration** (automatically uses CUDA if available)  
+- 🖥️ **Streamlit Frontend** for clean and interactive UI  
+- 📘 **Complete RAG Pipeline** (ingestion → embedding → retrieval → answer generation)
 
-Extractive answer generation (no hallucinations)
+---
 
-GPU support (if available)
+## ▶️ How to Run the App
 
-Streamlit UI
+Install dependencies:
 
-Run the app
+```bash
 pip install -r requirements.txt
+
+```bash
 streamlit run app.py
-
-Build the index (optional)
-
-If you need to regenerate the index:
-
-python ingest.py

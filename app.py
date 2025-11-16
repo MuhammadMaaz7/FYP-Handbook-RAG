@@ -52,7 +52,7 @@ if submitted:
         else:
             # Build context and concise answer
             context_text = format_context(results)
-            answer = extract_relevant_sentences_from_results(results, q, model)
+            answer = extract_relevant_sentences_from_results(results, q, model, prefer_top_chunk=True)
             if not answer:
                 # fallback
                 top_chunk = results[0]["chunk"]

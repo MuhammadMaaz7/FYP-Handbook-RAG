@@ -70,17 +70,26 @@ def boost_and_rerank(raw_scores, raw_idxs, chunks, query):
     results.sort(key=lambda x: x["score"], reverse=True)
     return results[:TOP_K]
 
-def extract_relevant_sentences_from_results(results, question, embed_model, max_sentences=4):
+def extract_relevant_sentences_from_results(results, question, embed_model, max_sentences=4, prefer_top_chunk=True):
     """
     Extracts the most semantically relevant sentences from retrieved chunks.
-    No hardcoding. Pure semantic relevance.
+    If prefer_top_chunk=True, it first tries to extract from the single top chunk.
     """
     all_sentences = []
-    for r in results:
-        text = r["chunk"]["text"]
-        sentences = [s.strip() for s in text.split(".") if len(s.split()) > 5]
+
+    if prefer_top_chunk and results:
+        top_chunk = results[0]["chunk"]
+        sentences = [s.strip() for s in top_chunk["text"].split(".") if len(s.split()) > 5]
         for s in sentences:
-            all_sentences.append((s, r["chunk"]["page"]))
+            all_sentences.append((s, top_chunk["page"]))
+
+    # fallback: include other chunks if needed
+    if not all_sentences:
+        for r in results:
+            text = r["chunk"]["text"]
+            sentences = [s.strip() for s in text.split(".") if len(s.split()) > 5]
+            for s in sentences:
+                all_sentences.append((s, r["chunk"]["page"]))
 
     if not all_sentences:
         return None
@@ -90,10 +99,10 @@ def extract_relevant_sentences_from_results(results, question, embed_model, max_
     sent_vecs = embed_model.encode(sent_texts, convert_to_numpy=True, normalize_embeddings=True)
     q_vec = embed_model.encode([question], convert_to_numpy=True, normalize_embeddings=True)[0]
 
-    # cosine scores
+    # cosine similarity scores
     scores = np.dot(sent_vecs, q_vec)
 
-    # pick best N sentences
+    # pick top sentences
     top_idx = np.argsort(scores)[::-1][:max_sentences]
 
     selected = []
@@ -165,7 +174,7 @@ def main():
             print(f"score={r['score']:.4f} (orig={r['orig_score']:.4f}) page={c['page']} id={c['chunk_id']} hint={c.get('section_hint','')[:40]}")
 
         # create concise paraphrased answer using top results
-        answer = extract_relevant_sentences_from_results(results, q, model)
+        answer = extract_relevant_sentences_from_results(results, q, model, prefer_top_chunk=True)
         if not answer:
             # fallback: show top chunk text excerpt
             top_chunk = results[0]["chunk"]
