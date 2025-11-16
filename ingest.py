@@ -1,4 +1,3 @@
-# ingest.py
 import pdfplumber
 import json
 import os
@@ -11,7 +10,7 @@ from tqdm import tqdm
 # -------------------------------
 # Paths & settings
 # -------------------------------
-PDF_PATH = "FYP-Handbook-2023.pdf"   # change if needed
+PDF_PATH = "FYP-Handbook-2023.pdf"
 OUT_DIR = "handbook_index"
 os.makedirs(OUT_DIR, exist_ok=True)
 
@@ -26,9 +25,7 @@ OVERLAP_PCT = 0.4  # increase overlap for better context
 OVERLAP_WORDS = int(WORDS_PER_CHUNK * OVERLAP_PCT)
 MIN_WORDS_PER_PAGE = 50  # skip empty/trivial pages
 
-# -------------------------------
 # Extract text from PDF
-# -------------------------------
 def extract_pages(path):
     pages = []
     with pdfplumber.open(path) as pdf:
@@ -38,9 +35,7 @@ def extract_pages(path):
                 pages.append({"page_num": i, "text": text})
     return pages
 
-# -------------------------------
-# Extract page section heading (first meaningful line)
-# -------------------------------
+# Extract page section heading
 def get_section_hint(text):
     for line in text.splitlines():
         s = line.strip()
@@ -48,9 +43,7 @@ def get_section_hint(text):
             return s
     return "No Heading"
 
-# -------------------------------
 # Chunking page text
-# -------------------------------
 def chunk_page(text, page_num):
     words = text.split()
     chunks = []
@@ -73,9 +66,7 @@ def chunk_page(text, page_num):
         i = i + WORDS_PER_CHUNK - OVERLAP_WORDS
     return chunks
 
-# -------------------------------
 # Build all chunks with section hints
-# -------------------------------
 def build_chunks(pages):
     all_chunks = []
     for p in pages:
@@ -86,26 +77,19 @@ def build_chunks(pages):
             all_chunks.append(c)
     return all_chunks
 
-# -------------------------------
 # Embed chunks
-# -------------------------------
 def embed_chunks(model, chunks):
     texts = [c["text"] for c in chunks]
     embeddings = model.encode(texts, show_progress_bar=True, convert_to_numpy=True)
     faiss.normalize_L2(embeddings)  # normalize for cosine similarity
     return embeddings
 
-# -------------------------------
 # Save chunks to JSONL
-# -------------------------------
 def save_chunks(chunks):
     with open(CHUNKS_FILE, "w", encoding="utf-8") as f:
         for c in chunks:
             f.write(json.dumps(c, ensure_ascii=False) + "\n")
 
-# -------------------------------
-# Main pipeline
-# -------------------------------
 def main():
     print("Extracting PDF pages...")
     pages = extract_pages(PDF_PATH)
